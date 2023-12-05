@@ -20,8 +20,8 @@ fun main() {
         return input.map {
             val id = it.substringBefore(":").filter { char -> char.isDigit() }.toInt()
             val numbers = it.substringAfter(":").split("|")
-            val winningNumbers = numbers[0].stringToListOfNumbers()
-            val myNumbers = numbers[1].stringToListOfNumbers()
+            val winningNumbers = numbers[0].toListOfNumbers().map { long -> long.toInt() }
+            val myNumbers = numbers[1].toListOfNumbers().map { long -> long.toInt() }
             Card(id, winningNumbers, myNumbers)
         }
     }
@@ -54,8 +54,3 @@ fun main() {
     println(part2(testInput))
 }
 
-fun String.stringToListOfNumbers() = this.trim().split(' ').mapNotNull { number ->
-    if (number.isNotEmpty())
-        number.toInt()
-    else null
-}

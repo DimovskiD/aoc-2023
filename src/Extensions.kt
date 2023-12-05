@@ -30,3 +30,10 @@ fun String.replaceCustom(wordToNumber: Map<String, String>): String {
     }
     return final
 }
+
+fun String.toListOfNumbers() = this.trim().split(' ').mapNotNull { number ->
+    val filteredNumber = number.replace(Regex("[^0-9]"), "")
+    if (filteredNumber.isNotEmpty())
+        filteredNumber.toLong()
+    else null
+}
