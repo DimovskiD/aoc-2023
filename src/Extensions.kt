@@ -37,3 +37,13 @@ fun String.toListOfNumbers() = this.trim().split(' ').mapNotNull { number ->
         filteredNumber.toLong()
     else null
 }
+
+fun String.toNumber() = this.replace(Regex("^[0-9]"), "").replace(" ","").trim().toLong()
+
+fun <T: Number> List<T>.multiplyContent(): Float {
+    var total = 1f
+    this.forEach {
+        total *= it.toFloat()
+    }
+    return total
+}
