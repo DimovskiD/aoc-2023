@@ -79,7 +79,7 @@ enum class MazeDirection(val coordinates: Coordinates) {
 class Maze(schema: List<String>) {
 
     private val matrix: Array<Array<Char>>
-    lateinit var startingCoordinates: Coordinates
+    private lateinit var startingCoordinates: Coordinates
     private var checkedStartingDirections: Int = 0
     private val validStartingDirections = mutableListOf<MazeDirection>()
 
@@ -103,7 +103,7 @@ class Maze(schema: List<String>) {
         return ret
     }
 
-    fun getNextValidStartingDirection(): MazeDirection {
+    private fun getNextValidStartingDirection(): MazeDirection {
         checkedStartingDirections++
         if (validStartingDirections.isEmpty()) {
             validStartingDirections.addAll(MazeDirection.entries.mapNotNull { direction ->
@@ -118,59 +118,92 @@ class Maze(schema: List<String>) {
     }
 
 
-    fun getSymbolAtCoordinates(coordinates: Coordinates): Char {
+    private fun getSymbolAtCoordinates(coordinates: Coordinates): Char {
         return matrix[coordinates.y][coordinates.x]
+    }
+
+    fun isUShape(lastCorner: Char, pipe: Char): Boolean =
+        (pipe == 'J' && lastCorner == 'L') || (pipe == '7' && lastCorner == 'F')
+
+
+    fun isCorner(pipe: Char?): Boolean {
+        return pipe == 'L' || pipe == 'F' || pipe == 'J' || pipe == '7'
+    }
+
+    fun isBarrier(pipe: Char?): Boolean {
+        return pipe == '|' || pipe == 'S'
+    }
+
+    fun getTraversalMatrix(): Array<Array<Char?>> {
+        var found = false
+        var traversal: Array<Array<Char?>> = Array(matrix.size) { arrayOfNulls(matrix[0].size) }
+        while (!found) {
+            var previousLocation = startingCoordinates
+            val initialDirection = getNextValidStartingDirection()
+            var currentLocation = startingCoordinates.add(initialDirection.coordinates)
+            traversal = Array(matrix.size) { arrayOfNulls(matrix[0].size) }
+
+            traversal[previousLocation.y][previousLocation.x] = 'S'
+            while (getSymbolAtCoordinates(coordinates = currentLocation) != 'S') {
+                val tmpCurrent = currentLocation
+
+                val direction =
+                    symbolToDirection(
+                        getSymbolAtCoordinates(currentLocation),
+                        currentLocation,
+                        previousLocation
+                    )
+                if (direction == null) {
+                    traversal = Array(matrix.size) { arrayOfNulls(matrix[0].size) }
+                    break
+                } else {
+                    traversal[currentLocation.y][currentLocation.x] = matrix[currentLocation.y][currentLocation.x]
+                }
+                currentLocation = currentLocation.add(direction.coordinates)
+
+                previousLocation = tmpCurrent
+            }
+            if (getSymbolAtCoordinates(coordinates = currentLocation) == 'S') {
+                found = true
+            }
+        }
+        return traversal
     }
 }
 
 fun main() {
 
     fun part1(input: List<String>): Int {
-        val maze = Maze(input)
-
-        var count = 1
-        var found = false
-
-        while (!found) {
-            var previousLocation = maze.startingCoordinates
-            val initialDirection = maze.getNextValidStartingDirection()
-            var currentLocation = maze.startingCoordinates.add(initialDirection.coordinates)
-
-            println("PREVIOUS_LOCATION ${maze.getSymbolAtCoordinates(previousLocation)} ${previousLocation}")
-            println("INITIAL_DIRECTION $initialDirection ${initialDirection.coordinates}")
-            println("INITIAL_LOCATION ${maze.getSymbolAtCoordinates(currentLocation)} ${currentLocation}")
-
-            while (maze.getSymbolAtCoordinates(coordinates = currentLocation) != 'S') {
-                val tmpCurrent = currentLocation
-
-                println("CURRENT_LOCATION ${maze.getSymbolAtCoordinates(currentLocation)}")
-                val direction =
-                    symbolToDirection(
-                        maze.getSymbolAtCoordinates(currentLocation),
-                        currentLocation,
-                        previousLocation
-                    ) ?: break
-                println("GO_TO_DIRECTION $direction")
-                currentLocation = currentLocation.add(direction.coordinates)
-                println("NEXT_LOCATION $currentLocation")
-
-                previousLocation = tmpCurrent
-                count++
-            }
-            if (maze.getSymbolAtCoordinates(coordinates = currentLocation) == 'S') {
-                found = true
-            } else {
-                count = 0
-            }
-        }
-        return count / 2
+        return Maze(input).getTraversalMatrix().sumOf { row ->
+            row.count { it != null }
+        } / 2
     }
 
-    fun part2(input: List<String>): Long {
-        return 0
+    fun part2(input: List<String>): Int {
+        val maze = Maze(input)
+        var count = 0
+
+        maze.getTraversalMatrix().forEach {
+            var inRegion = false
+            var lastCorner: Char? = null
+
+            it.forEach { pipe ->
+                if (maze.isBarrier(pipe)) inRegion = !inRegion
+                else if (pipe == null && inRegion) {
+                    count++
+                } else if (maze.isCorner(pipe)) {
+                    if (lastCorner == null) lastCorner = pipe
+                    else if (!maze.isUShape(lastCorner!!, pipe!!)) {
+                        inRegion = !inRegion
+                        lastCorner = null
+                    } else lastCorner = null
+                }
+            }
+        }
+        return count
     }
 
     val testInput = readInput("day10")
 
-    println(part1(testInput))
+    println(part2(testInput))
 }
