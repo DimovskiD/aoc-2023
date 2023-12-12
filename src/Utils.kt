@@ -48,3 +48,18 @@ fun binarySearch(
     }
     return result
 }
+
+
+fun lcm(a: Long, b: Long): Long {
+    var ma = a
+    var mb = b
+    var remainder: Long
+
+    while (mb != 0L) {
+        remainder = ma % mb
+        ma = mb
+        mb = remainder
+    }
+
+    return a * b / ma
+}
