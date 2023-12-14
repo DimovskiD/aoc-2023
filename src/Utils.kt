@@ -63,3 +63,33 @@ fun lcm(a: Long, b: Long): Long {
 
     return a * b / ma
 }
+
+fun countOccurrences(str: String, searchStr: String): Int {
+    var count = 0
+    var startIndex = 0
+
+    while (startIndex < str.length) {
+        val index = str.indexOf(searchStr, startIndex)
+        if (index >= 0) {
+            count++
+            startIndex = index + searchStr.length
+        } else {
+            break
+        }
+    }
+
+    return count
+}
+
+fun longestRepeatingSubsequence(originalList: List<Int>, list: List<Int>): List<Int> {
+    val string = originalList.joinToString(",")
+    return if (list.isEmpty()) emptyList() else if (countOccurrences(string, list.drop(1).joinToString(",")) > 1) {
+        list.drop(1)
+    } else longestRepeatingSubsequence(originalList, list.drop(1))
+}
+
+fun<T> MutableList<MutableList<T>>.reversedColumns(): MutableList<MutableList<T>> {
+    return this.map {
+        it.reversed().toMutableList()
+    }.toMutableList()
+}
