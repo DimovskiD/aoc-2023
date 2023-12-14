@@ -92,18 +92,21 @@ fun main() {
         var newMatrix = matrix
 
         val lst = mutableListOf<Int>()
-        val reasonablyHighNumberToDeterminePattern = 3000
+        val reasonablyHighNumberToDeterminePattern = 21
 
-        repeat(reasonablyHighNumberToDeterminePattern) {
+        while (true) {
             newMatrix = Sisyphus.spinCycle(newMatrix)
+            val calculated = calculate(newMatrix)
+            if (lst.count { it == calculated } == reasonablyHighNumberToDeterminePattern) break
             lst.add(calculate(newMatrix))
         }
 
-        val sequence = longestRepeatingSubsequence(lst, lst.dropLast(1))
-        return lst[1000000000 % sequence.size]
+        val sequence = longestRepeatingSubsequence(lst, lst)
+        return lst[(1000000000 - 1) % sequence.size]
     }
 
     val testInput = readInput("day14")
+
     val matrix = testInput.map { row ->
         row.map {
             it
