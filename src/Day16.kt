@@ -1,4 +1,3 @@
-/*
 import MazeDirection.Companion.symbolToDirection
 import MazeDirection.Companion.comingFromBottom
 import MazeDirection.Companion.comingFromLeft
@@ -248,4 +247,4 @@ fun main() {
 
     val testInput = readInput("day16")
     println(part2(testInput))
-}*/
+}
