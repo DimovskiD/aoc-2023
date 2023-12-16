@@ -1,108 +1,33 @@
-import MazeDirection.Companion.symbolToDirection
+import helpers.Coordinates
+import helpers.MazeDirection
+import helpers.MazeDirection.*
+import helpers.MovementMatrix
 
-data class Coordinates(val x: Int, val y: Int) {
+class Maze(schema: List<String>): MovementMatrix(schema) {
 
-    fun add(coordinates: Coordinates): Coordinates {
-        return Coordinates(x + coordinates.x, y + coordinates.y)
-    }
-}
-
-enum class MazeDirection(val coordinates: Coordinates) {
-    UP(Coordinates(0, -1)), DOWN(Coordinates(0, 1)), LEFT(Coordinates(-1, 0)), RIGHT(Coordinates(1, 0));
-
-    companion object {
-
-        private fun comingFromRight(currentLocation: Coordinates, previousLocation: Coordinates): Boolean {
-            return currentLocation.add(RIGHT.coordinates) == previousLocation
-        }
-
-        private fun comingFromLeft(currentLocation: Coordinates, previousLocation: Coordinates): Boolean {
-            return currentLocation.add(LEFT.coordinates) == previousLocation
-        }
-
-        private fun comingFromTop(currentLocation: Coordinates, previousLocation: Coordinates): Boolean {
-            return currentLocation.add(UP.coordinates) == previousLocation
-        }
-
-        private fun comingFromBottom(currentLocation: Coordinates, previousLocation: Coordinates): Boolean {
-            return currentLocation.add(DOWN.coordinates) == previousLocation
-        }
-
-        fun symbolToDirection(
-            symbol: Char,
-            currentLocation: Coordinates,
-            previousLocation: Coordinates,
-        ): MazeDirection? {
-            return when (symbol) {
-                '|' -> if (comingFromTop(currentLocation, previousLocation)) DOWN else if (comingFromBottom(
-                        currentLocation,
-                        previousLocation
-                    )
-                ) UP else null
-
-                '-' -> if (comingFromLeft(currentLocation, previousLocation)) RIGHT else if (comingFromRight(
-                        currentLocation,
-                        previousLocation
-                    )
-                ) LEFT else null
-
-                'L' -> if (comingFromTop(currentLocation, previousLocation)) RIGHT else if (comingFromRight(
-                        currentLocation,
-                        previousLocation
-                    )
-                ) UP else null
-
-                'J' -> if (comingFromTop(currentLocation, previousLocation)) LEFT else if (comingFromLeft(
-                        currentLocation,
-                        previousLocation
-                    )
-                ) UP else null
-
-                '7' -> if (comingFromBottom(currentLocation, previousLocation)) LEFT else if (comingFromLeft(
-                        currentLocation,
-                        previousLocation
-                    )
-                ) DOWN else null
-
-                'F' -> if (comingFromBottom(currentLocation, previousLocation)) RIGHT else if (comingFromRight(
-                        currentLocation,
-                        previousLocation
-                    )
-                ) DOWN else null
-
-                else -> null
-            }
-        }
-    }
-}
-
-class Maze(schema: List<String>) {
-
-    private val matrix: Array<Array<Char>>
     private lateinit var startingCoordinates: Coordinates
     private var checkedStartingDirections: Int = 0
     private val validStartingDirections = mutableListOf<MazeDirection>()
 
     init {
-        matrix = Array(schema.size) { row ->
-            val length = schema[row].length
-            val arr = Array(length) { column ->
-                val char = schema[row][column]
-                if (char == 'S') startingCoordinates = Coordinates(column, row)
-                print(char)
-                char
+        matrix.forEachIndexed { index, row ->
+            row.forEachIndexed { colIndex, char ->
+                if (char == 'S') startingCoordinates = Coordinates(colIndex, index)
             }
-            println(" ")
-            arr
         }
     }
+    override fun symbolToDirections(symbolPosition: Coordinates, comingFrom: MazeDirection): List<MazeDirection>? {
+        return listOfNotNull(when (getSymbolAtCoordinates(symbolPosition)) {
+            '|' -> if (comingFrom == UP) DOWN else if (comingFrom == DOWN) UP else null
+            '-' -> if (comingFrom == LEFT) RIGHT else if (comingFrom == RIGHT) LEFT else null
+            'L' -> if (comingFrom == UP) RIGHT else if (comingFrom == RIGHT) UP else null
+            'J' -> if (comingFrom == UP) LEFT else if (comingFrom == LEFT) UP else null
+            '7' -> if (comingFrom == DOWN) LEFT else if (comingFrom == LEFT) DOWN else null
+            'F' -> if (comingFrom == DOWN) RIGHT else if (comingFrom == RIGHT) DOWN else null
+            else -> null
+        })
 
-    private fun getNextDirection(currentLocation: Coordinates, previousLocation: Coordinates): MazeDirection? {
-        if (currentLocation.x < 0 || currentLocation.y < 0 || currentLocation.x >= matrix[0].size || currentLocation.y >= matrix.size) return null
-        val ret = symbolToDirection(matrix[currentLocation.y][currentLocation.x], currentLocation, previousLocation)
-        return ret
     }
-
     private fun getNextValidStartingDirection(): MazeDirection {
         checkedStartingDirections++
         if (validStartingDirections.isEmpty()) {
@@ -117,14 +42,8 @@ class Maze(schema: List<String>) {
         return validStartingDirections[checkedStartingDirections]
     }
 
-
-    private fun getSymbolAtCoordinates(coordinates: Coordinates): Char {
-        return matrix[coordinates.y][coordinates.x]
-    }
-
     fun isUShape(lastCorner: Char, pipe: Char): Boolean =
         (pipe == 'J' && lastCorner == 'L') || (pipe == '7' && lastCorner == 'F')
-
 
     fun isCorner(pipe: Char?): Boolean {
         return pipe == 'L' || pipe == 'F' || pipe == 'J' || pipe == '7'
@@ -147,11 +66,11 @@ class Maze(schema: List<String>) {
             while (getSymbolAtCoordinates(coordinates = currentLocation) != 'S') {
                 val tmpCurrent = currentLocation
 
+                val comingFrom = getDirectionOfMovement(previousLocation, currentLocation)
                 val direction =
-                    symbolToDirection(
-                        getSymbolAtCoordinates(currentLocation),
+                    symbolToDirections(
                         currentLocation,
-                        previousLocation
+                        comingFrom!!
                     )
                 if (direction == null) {
                     traversal = Array(matrix.size) { arrayOfNulls(matrix[0].size) }
@@ -159,7 +78,7 @@ class Maze(schema: List<String>) {
                 } else {
                     traversal[currentLocation.y][currentLocation.x] = matrix[currentLocation.y][currentLocation.x]
                 }
-                currentLocation = currentLocation.add(direction.coordinates)
+                currentLocation = currentLocation.add(direction[0].coordinates)
 
                 previousLocation = tmpCurrent
             }
