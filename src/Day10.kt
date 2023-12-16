@@ -1,13 +1,13 @@
 import helpers.Coordinates
-import helpers.MazeDirection
-import helpers.MazeDirection.*
+import helpers.MovementDirection
+import helpers.MovementDirection.*
 import helpers.MovementMatrix
 
 class Maze(schema: List<String>): MovementMatrix(schema) {
 
     private lateinit var startingCoordinates: Coordinates
     private var checkedStartingDirections: Int = 0
-    private val validStartingDirections = mutableListOf<MazeDirection>()
+    private val validStartingDirections = mutableListOf<MovementDirection>()
 
     init {
         matrix.forEachIndexed { index, row ->
@@ -16,7 +16,7 @@ class Maze(schema: List<String>): MovementMatrix(schema) {
             }
         }
     }
-    override fun symbolToDirections(symbolPosition: Coordinates, comingFrom: MazeDirection): List<MazeDirection>? {
+    override fun symbolToDirections(symbolPosition: Coordinates, comingFrom: MovementDirection): List<MovementDirection>? {
         return listOfNotNull(when (getSymbolAtCoordinates(symbolPosition)) {
             '|' -> if (comingFrom == UP) DOWN else if (comingFrom == DOWN) UP else null
             '-' -> if (comingFrom == LEFT) RIGHT else if (comingFrom == RIGHT) LEFT else null
@@ -28,10 +28,10 @@ class Maze(schema: List<String>): MovementMatrix(schema) {
         })
 
     }
-    private fun getNextValidStartingDirection(): MazeDirection {
+    private fun getNextValidStartingDirection(): MovementDirection {
         checkedStartingDirections++
         if (validStartingDirections.isEmpty()) {
-            validStartingDirections.addAll(MazeDirection.entries.mapNotNull { direction ->
+            validStartingDirections.addAll(MovementDirection.entries.mapNotNull { direction ->
                 if (getNextDirection(
                         startingCoordinates.add(direction.coordinates),
                         startingCoordinates

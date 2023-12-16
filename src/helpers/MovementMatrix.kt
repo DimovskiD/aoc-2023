@@ -11,7 +11,7 @@ data class Coordinates(val x: Int, val y: Int) {
     }
 }
 
-enum class MazeDirection(val coordinates: Coordinates) {
+enum class MovementDirection(val coordinates: Coordinates) {
     UP(Coordinates(0, -1)), DOWN(Coordinates(0, 1)), LEFT(Coordinates(-1, 0)), RIGHT(Coordinates(1, 0));
 }
 abstract class MovementMatrix(schema: List<String>) {
@@ -28,16 +28,16 @@ abstract class MovementMatrix(schema: List<String>) {
 
     abstract fun symbolToDirections(
         symbolPosition: Coordinates,
-        comingFrom: MazeDirection
-    ): List<MazeDirection>?
+        comingFrom: MovementDirection
+    ): List<MovementDirection>?
 
-    protected fun getDirectionOfMovement(previousLocation: Coordinates, currentLocation: Coordinates): MazeDirection? {
-        val direction = MazeDirection.entries.find {
+    protected fun getDirectionOfMovement(previousLocation: Coordinates, currentLocation: Coordinates): MovementDirection? {
+        val direction = MovementDirection.entries.find {
             currentLocation.add(it.coordinates) == previousLocation
         }
         return direction
     }
-    protected fun getNextDirection(currentLocation: Coordinates, previousLocation: Coordinates): MazeDirection? {
+    protected fun getNextDirection(currentLocation: Coordinates, previousLocation: Coordinates): MovementDirection? {
         if (!currentLocation.isValid(matrix[0].size, matrix.size)) return null
         val directionOfMovement = getDirectionOfMovement(previousLocation, currentLocation) ?: return null
         return symbolToDirections(currentLocation, directionOfMovement)?.getOrNull(0)

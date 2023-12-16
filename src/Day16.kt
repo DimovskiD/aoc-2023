@@ -1,10 +1,10 @@
 import helpers.Coordinates
-import helpers.MazeDirection
+import helpers.MovementDirection
 import helpers.MovementMatrix
 
-class MirrorMaze(schema: List<String>) : MovementMatrix(schema) {
+class MirrorLayout(schema: List<String>) : MovementMatrix(schema) {
 
-    fun getTraversalMatrix(
+    private fun getTraversalMatrix(
         traversalMatrix: Array<Array<Char?>>? = null,
         currentLocation: Coordinates,
         previousLocation: Coordinates,
@@ -32,98 +32,98 @@ class MirrorMaze(schema: List<String>) : MovementMatrix(schema) {
         return traversal
     }
 
-    override fun symbolToDirections(symbolPosition: Coordinates, comingFrom: MazeDirection): List<MazeDirection> {
+    override fun symbolToDirections(
+        symbolPosition: Coordinates,
+        comingFrom: MovementDirection
+    ): List<MovementDirection> {
         return when (getSymbolAtCoordinates(symbolPosition)) {
             '|' -> when (comingFrom) {
-                MazeDirection.UP -> listOf(MazeDirection.DOWN)
-                MazeDirection.DOWN -> listOf(MazeDirection.UP)
-                MazeDirection.LEFT, MazeDirection.RIGHT -> listOf(
-                    MazeDirection.UP,
-                    MazeDirection.DOWN
+                MovementDirection.UP -> listOf(MovementDirection.DOWN)
+                MovementDirection.DOWN -> listOf(MovementDirection.UP)
+                MovementDirection.LEFT, MovementDirection.RIGHT -> listOf(
+                    MovementDirection.UP,
+                    MovementDirection.DOWN
                 )
             }
-
             '-' -> when (comingFrom) {
-                MazeDirection.LEFT -> listOf(MazeDirection.RIGHT)
-                MazeDirection.RIGHT -> listOf(MazeDirection.LEFT)
-                MazeDirection.UP, MazeDirection.DOWN -> listOf(MazeDirection.LEFT, MazeDirection.RIGHT)
+                MovementDirection.LEFT -> listOf(MovementDirection.RIGHT)
+                MovementDirection.RIGHT -> listOf(MovementDirection.LEFT)
+                MovementDirection.UP, MovementDirection.DOWN -> listOf(MovementDirection.LEFT, MovementDirection.RIGHT)
             }
-
             '\\' -> listOf(
                 when (comingFrom) {
-                    MazeDirection.LEFT -> MazeDirection.DOWN
-                    MazeDirection.RIGHT -> MazeDirection.UP
-                    MazeDirection.UP -> MazeDirection.RIGHT
-                    MazeDirection.DOWN -> MazeDirection.LEFT
+                    MovementDirection.LEFT -> MovementDirection.DOWN
+                    MovementDirection.RIGHT -> MovementDirection.UP
+                    MovementDirection.UP -> MovementDirection.RIGHT
+                    MovementDirection.DOWN -> MovementDirection.LEFT
                 }
             )
-
             '/' -> listOf(
                 when (comingFrom) {
-                    MazeDirection.LEFT -> MazeDirection.UP
-                    MazeDirection.RIGHT -> MazeDirection.DOWN
-                    MazeDirection.UP -> MazeDirection.LEFT
-                    MazeDirection.DOWN -> MazeDirection.RIGHT
+                    MovementDirection.LEFT -> MovementDirection.UP
+                    MovementDirection.RIGHT -> MovementDirection.DOWN
+                    MovementDirection.UP -> MovementDirection.LEFT
+                    MovementDirection.DOWN -> MovementDirection.RIGHT
                 }
             )
-
             else -> listOf(
                 when (comingFrom) {
-                    MazeDirection.RIGHT -> MazeDirection.LEFT
-                    MazeDirection.UP -> MazeDirection.DOWN
-                    MazeDirection.DOWN -> MazeDirection.UP
-                    MazeDirection.LEFT -> MazeDirection.RIGHT
+                    MovementDirection.RIGHT -> MovementDirection.LEFT
+                    MovementDirection.UP -> MovementDirection.DOWN
+                    MovementDirection.DOWN -> MovementDirection.UP
+                    MovementDirection.LEFT -> MovementDirection.RIGHT
                 }
             )
         }
     }
+
+    fun calculateSum(previousLocation: Coordinates, direction: MovementDirection): Int {
+        val map = hashMapOf<Coordinates, MutableList<Coordinates>>()
+
+        val directions = symbolToDirections(previousLocation, direction)
+        val totalSum = directions.sumOf {
+            val currentLocation = previousLocation.add(it.coordinates)
+            val traversal = getTraversalMatrix(null, currentLocation, previousLocation, map)
+            val sum = traversal.sumOf { row ->
+                row.count { char -> char == '#' }
+            }
+            sum
+        }
+        return totalSum
+    }
+
 }
 
-    fun main() {
+fun main() {
 
-        fun calculateSum(maze: MirrorMaze, previousLocation: Coordinates, direction: MazeDirection): Int {
-            val map = hashMapOf<Coordinates, MutableList<Coordinates>>()
-
-            val directions = maze.symbolToDirections(previousLocation, direction)
-            val totalSum = directions.sumOf {
-                val currentLocation = previousLocation.add(it.coordinates)
-                val traversal = maze.getTraversalMatrix(null, currentLocation, previousLocation, map)
-                val sum = traversal.sumOf { row ->
-                    row.count { char -> char == '#' }
-                }
-                sum
-            }
-            return totalSum
-        }
-
-        fun part1(input: List<String>): Int {
-            val maze = MirrorMaze(input)
-            val previousLocation = Coordinates(3, 0)
-            return calculateSum(maze, previousLocation, MazeDirection.UP)
-        }
-
-        fun part2(input: List<String>): Int {
-            val maze = MirrorMaze(input)
-            val maxRows = maze.matrix.indices.maxOf { index ->
-                val previousLocationLeft = Coordinates(0, index)
-                val sumLeft = calculateSum(maze, previousLocationLeft, MazeDirection.LEFT)
-                val previousLocationRight = Coordinates(maze.matrix[0].size - 1, index)
-                val sumRight = calculateSum(maze, previousLocationRight, MazeDirection.RIGHT)
-
-                maxOf(sumLeft, sumRight)
-            }
-            val maxColumns = maze.matrix[0].indices.maxOf { index ->
-
-                val previousLocationTop = Coordinates(index, 0)
-                val sumTop = calculateSum(maze, previousLocationTop, MazeDirection.UP)
-                val previousLocationBottom = Coordinates(index, maze.matrix.size - 1)
-                val sumBottom = calculateSum(maze, previousLocationBottom, MazeDirection.DOWN)
-
-                maxOf(sumTop, sumBottom)
-            }
-            return maxOf(maxColumns, maxRows)
-        }
-
-        val testInput = readInput("day16")
-        println(part2(testInput))
+    fun part1(input: List<String>): Int {
+        val mirrorLayout = MirrorLayout(input)
+        val previousLocation = Coordinates(3, 0)
+        return mirrorLayout.calculateSum(previousLocation, MovementDirection.UP)
     }
+
+    fun part2(input: List<String>): Int {
+        val mirrorLayout = MirrorLayout(input)
+        val maxRows = mirrorLayout.matrix.indices.maxOf { index ->
+            val previousLocationLeft = Coordinates(0, index)
+            val sumLeft = mirrorLayout.calculateSum(previousLocationLeft, MovementDirection.LEFT)
+            val previousLocationRight = Coordinates(mirrorLayout.matrix[0].size - 1, index)
+            val sumRight = mirrorLayout.calculateSum(previousLocationRight, MovementDirection.RIGHT)
+
+            maxOf(sumLeft, sumRight)
+        }
+        val maxColumns = mirrorLayout.matrix[0].indices.maxOf { index ->
+
+            val previousLocationTop = Coordinates(index, 0)
+            val sumTop = mirrorLayout.calculateSum(previousLocationTop, MovementDirection.UP)
+            val previousLocationBottom = Coordinates(index, mirrorLayout.matrix.size - 1)
+            val sumBottom = mirrorLayout.calculateSum(previousLocationBottom, MovementDirection.DOWN)
+
+            maxOf(sumTop, sumBottom)
+        }
+        return maxOf(maxColumns, maxRows)
+    }
+
+    val testInput = readInput("day16")
+    println(part2(testInput))
+}
