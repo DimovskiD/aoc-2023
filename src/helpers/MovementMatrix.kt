@@ -13,6 +13,17 @@ data class Coordinates(val x: Int, val y: Int) {
 
 enum class MovementDirection(val coordinates: Coordinates) {
     UP(Coordinates(0, -1)), DOWN(Coordinates(0, 1)), LEFT(Coordinates(-1, 0)), RIGHT(Coordinates(1, 0));
+
+    companion object {
+        fun directionFromLetter(char: Char): MovementDirection {
+            return when (char) {
+                'R' -> RIGHT
+                'U' -> UP
+                'D' -> DOWN
+                else -> LEFT
+            }
+        }
+     }
 }
 abstract class MovementMatrix(schema: List<String>) {
 
