@@ -22,16 +22,16 @@ fun main() {
     fun perimeter(steps: List<DiggingStep>) = steps.sumOf { it.numberOfBlocks }
 
     fun mapCoordinates(steps: List<DiggingStep>): List<Coordinates> {
-        var start = Coordinates(0, 0)
+        var currentPosition = Coordinates(0, 0)
         return steps.map { diggingStep ->
-            val coordinates = mutableListOf<Coordinates>()
-            for (x in 0 until diggingStep.numberOfBlocks) {
-                start = start.add(diggingStep.direction.coordinates)
-                if (x == 0 || x == diggingStep.numberOfBlocks - 1)
-                    coordinates += Coordinates(start.x, start.y)
-            }
-            coordinates
-        }.flatten()
+            currentPosition = currentPosition.add(
+                Coordinates(
+                    diggingStep.direction.coordinates.x * diggingStep.numberOfBlocks,
+                    diggingStep.direction.coordinates.y * diggingStep.numberOfBlocks
+                )
+            )
+            currentPosition
+        }
     }
 
     fun part1(input: List<String>): Int {
