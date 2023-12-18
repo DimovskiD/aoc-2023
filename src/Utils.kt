@@ -1,7 +1,9 @@
+import helpers.Coordinates
 import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
+import kotlin.math.abs
 
 /**
  * Reads lines from the given input txt file.
@@ -92,4 +94,15 @@ fun<T> MutableList<MutableList<T>>.reversedColumns(): MutableList<MutableList<T>
     return this.map {
         it.reversed().toMutableList()
     }.toMutableList()
+}
+
+fun shoelaceArea(v: List<Coordinates>): Double {
+    val n = v.size
+    var a = 0.0
+    for (i in 0 until n - 1) {
+        val l1: Long = v[i].x.toLong() * v[i + 1].y
+        val l2: Long = v[i + 1].x.toLong() * v[i].y
+        a += l1 - l2
+    }
+    return abs(a + v[n - 1].x * v[0].y - v[0].x * v[n -1].y) / 2.0
 }
