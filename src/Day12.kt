@@ -1,11 +1,4 @@
-class Memoize<in T, in X, out R>(val f: (T, List<X>) -> R) : (T, List<X>) -> R {
-    private val values = mutableMapOf<Pair<T, List<X>>, R>()
-    override fun invoke(x: T, list: List<X>): R {
-        return values.getOrPut(x to list) { f(x, list) }
-    }
-}
-
-fun <T, X, R> ((T, List<X>) -> R).memoize(): (T, List<X>) -> R = Memoize(this)
+import helpers.memoize
 
 fun processSequence(sequence: String, numbers: List<Int>): Long {
     return when {
@@ -46,19 +39,7 @@ fun main() {
     }
 
     fun part2(input: List<String>): Long {
-        return input.sumOf { line ->
-            val sequence = line.substringBefore(" ")
-            val numbers = line.substringAfter(" ").split(",").map { it.toInt() }
-
-            val sequences = buildString {
-                repeat(5) { repeat ->
-                    append(sequence)
-                    if (repeat != 4) append("?")
-                }
-            }
-            val expandedNumbers = buildList { repeat(5) { add(numbers) } }
-            memoizedProcessSequence(sequences, expandedNumbers.flatten())
-        }
+       return 0L
     }
 
     val testInput = readInput("day12")

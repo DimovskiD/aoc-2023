@@ -1,3 +1,5 @@
+import helpers.memoize
+
 data class MachinePart(val x: Int, val m: Int, val a: Int, val s: Int) {
     fun sum(): Int = s + x + m + a
 
@@ -25,6 +27,7 @@ data class Workflow(val rules: List<Rule>)
 
 fun main() {
 
+
     val workflows: HashMap<String, Workflow> = hashMapOf()
 
     fun executeWorkflow(
@@ -42,7 +45,9 @@ fun main() {
         return null
     }
 
-    fun part1(input: List<String>): Int {
+    val memoizedWorkflowExecute = { x: String, part: MachinePart -> executeWorkflow(x, part) }.memoize()
+
+    fun extractWorkflows(input: List<String>) {
         input.subList(0, input.indexOf("")).map { workflow ->
             val name = workflow.substring(0, workflow.indexOf('{'))
             val rules = workflow.substring(workflow.indexOf('{') + 1, workflow.indexOf('}')).split(",")
@@ -57,24 +62,37 @@ fun main() {
             val default = Rule(' ', ' ', 0, rules.last(), true)
             workflows[name] = Workflow(mappedRules + default)
         }
-        val parts = input.subList(input.indexOf("") + 1, input.size).map {
+    }
+
+    fun extractParts(input: List<String>): List<MachinePart> {
+        return input.subList(input.indexOf("") + 1, input.size).map {
             val x = it.substring(it.indexOf("x=") + 2, it.indexOf("m=") - 1).toInt()
             val m = it.substring(it.indexOf("m=") + 2, it.indexOf("a=") - 1).toInt()
             val a = it.substring(it.indexOf("a=") + 2, it.indexOf("s=") - 1).toInt()
             val s = it.substring(it.indexOf("s=") + 2, it.indexOf("}")).toInt()
             MachinePart(x, m, a, s)
         }
+    }
+    fun part1(input: List<String>): Int {
+        extractWorkflows(input)
+        val parts = extractParts(input)
 
         return parts.sumOf { part ->
-            if (executeWorkflow("in", part) == "A") part.sum() else 0
+            if (memoizedWorkflowExecute("in", part) == "A") part.sum() else 0
         }
     }
 
     fun part2(input: List<String>): Long {
-        return 0L
+        extractWorkflows(input)
+        val parts = mutableListOf<MachinePart>()
+
+        return parts.sumOf { part ->
+            println(part)
+            if (memoizedWorkflowExecute("in", part) == "A") part.sum() else 0
+        }.toLong()
     }
 
-    val testInput = readInput("day19")
-    println(part1(testInput))
+    val testInput = readInput("day19_example")
+    println(part2(testInput))
 
 }
