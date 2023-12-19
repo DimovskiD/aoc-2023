@@ -39,7 +39,19 @@ fun main() {
     }
 
     fun part2(input: List<String>): Long {
-       return 0L
+        return input.sumOf { line ->
+            val sequence = line.substringBefore(" ")
+            val numbers = line.substringAfter(" ").split(",").map { it.toInt() }
+
+            val sequences = buildString {
+                repeat(5) { repeat ->
+                    append(sequence)
+                    if (repeat != 4) append("?")
+                }
+            }
+            val expandedNumbers = buildList { repeat(5) { add(numbers) } }
+            memoizedProcessSequence(sequences, expandedNumbers.flatten())
+        }
     }
 
     val testInput = readInput("day12")
