@@ -39,7 +39,7 @@ abstract class MovementMatrix(schema: List<String>) {
 
     abstract fun symbolToDirections(
         symbolPosition: Coordinates,
-        comingFrom: MovementDirection
+        comingFrom: MovementDirection?
     ): List<MovementDirection>?
 
     protected fun getDirectionOfMovement(previousLocation: Coordinates, currentLocation: Coordinates): MovementDirection? {

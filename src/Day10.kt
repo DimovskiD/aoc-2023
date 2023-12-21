@@ -16,7 +16,7 @@ class Maze(schema: List<String>): MovementMatrix(schema) {
             }
         }
     }
-    override fun symbolToDirections(symbolPosition: Coordinates, comingFrom: MovementDirection): List<MovementDirection>? {
+    override fun symbolToDirections(symbolPosition: Coordinates, comingFrom: MovementDirection?): List<MovementDirection>? {
         return listOfNotNull(when (getSymbolAtCoordinates(symbolPosition)) {
             '|' -> if (comingFrom == UP) DOWN else if (comingFrom == DOWN) UP else null
             '-' -> if (comingFrom == LEFT) RIGHT else if (comingFrom == RIGHT) LEFT else null

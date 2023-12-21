@@ -1,7 +1,6 @@
 enum class Pulse{ HIGH, LOW }
 
-val pulsesQueue = mutableListOf<() -> Unit>()
-
+val pulsesQueue = mutableListOf<() -> Pair<String, Pulse>>()
 sealed class Module(val name: String) {
 
     var destinationModules: List<Module> = emptyList()
@@ -18,7 +17,10 @@ sealed class Module(val name: String) {
             if (pulse == Pulse.HIGH) totalHighSent++
             else totalLowSent++
             println("SENDING $pulse from $this to $it")
-            pulsesQueue.add { it.receivePulse(pulse, this) }
+            pulsesQueue.add {
+                it.receivePulse(pulse, this)
+                return@add it.name to pulse
+            }
         }
     }
 
@@ -62,8 +64,10 @@ sealed class Module(val name: String) {
 
     class ButtonModule(private val broadcastModule: BroadcastModule){
         fun pressButton() =
-            pulsesQueue.add { broadcastModule.receivePulse(Pulse.LOW, null) }
-
+            pulsesQueue.add {
+                broadcastModule.receivePulse(Pulse.LOW, null)
+                return@add "button" to Pulse.LOW
+            }
     }
 
 }
@@ -101,7 +105,6 @@ fun main() {
             }
 
         }
-        modules.println()
         return modules
     }
 
@@ -129,11 +132,30 @@ fun main() {
     }
 
     fun part2(input: List<String>): Long {
-        return 0L
+        val modules = extractModules(input)
+        val nextToLast = modules.filter { it.destinationModules.any { dest -> dest.name.trim() == "rx"}}[0]
+        val twiceRemoved =  modules.filter { it.destinationModules.any { dest -> dest == nextToLast }}
+        val map = hashMapOf<String, Int>()
+        var count = 0
+
+        while (true) {
+            if (pulsesQueue.isEmpty()) {
+                buttonModule?.pressButton()
+                count++
+            } else {
+                val (moduleName, pulse) = pulsesQueue[0].invoke()
+                val moduleInMap = twiceRemoved.filter { it.name == moduleName }
+                moduleInMap.println()
+                if (moduleInMap.firstOrNull() != null && pulse == Pulse.LOW ) {
+                    map[moduleInMap.first().name] = count
+                }
+                pulsesQueue.removeAt(0)
+            }
+            if (map.values.all { it != -1 }) break
+        }
+        return lcm(map.values.map { it.toLong() })
     }
 
-
     val testInput = readInput("day20")
-    println(part1(testInput))
-
+    println(part2(testInput))
 }

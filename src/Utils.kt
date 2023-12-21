@@ -66,6 +66,15 @@ fun lcm(a: Long, b: Long): Long {
     return a * b / ma
 }
 
+
+fun lcm(numbers: List<Long>): Long {
+    var result = numbers[0]
+    for (i in 1 until numbers.size) {
+        result = lcm(result, numbers[i])
+    }
+    return result
+}
+
 fun countOccurrences(str: String, searchStr: String): Int {
     var count = 0
     var startIndex = 0

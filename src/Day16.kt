@@ -34,8 +34,9 @@ class MirrorLayout(schema: List<String>) : MovementMatrix(schema) {
 
     override fun symbolToDirections(
         symbolPosition: Coordinates,
-        comingFrom: MovementDirection
+        comingFrom: MovementDirection?
     ): List<MovementDirection> {
+        if (comingFrom == null) return emptyList()
         return when (getSymbolAtCoordinates(symbolPosition)) {
             '|' -> when (comingFrom) {
                 MovementDirection.UP -> listOf(MovementDirection.DOWN)
