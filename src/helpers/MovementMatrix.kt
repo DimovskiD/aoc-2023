@@ -14,6 +14,13 @@ data class Coordinates(val x: Int, val y: Int) {
 enum class MovementDirection(val coordinates: Coordinates) {
     UP(Coordinates(0, -1)), DOWN(Coordinates(0, 1)), LEFT(Coordinates(-1, 0)), RIGHT(Coordinates(1, 0));
 
+    fun opposite(): MovementDirection = when (this) {
+            LEFT -> RIGHT
+            RIGHT -> LEFT
+            UP -> DOWN
+            DOWN -> UP
+        }
+
     companion object {
         fun directionFromLetter(char: Char): MovementDirection {
             return when (char) {
@@ -37,9 +44,13 @@ abstract class MovementMatrix(schema: List<String>) {
         }
     }
 
+    open fun isCoordinateVAlid(coordinates: Coordinates): Boolean {
+        return coordinates.y in matrix.indices || coordinates.x in matrix[0].indices
+    }
+
     abstract fun symbolToDirections(
         symbolPosition: Coordinates,
-        comingFrom: MovementDirection?
+        comingFrom: MovementDirection? = null
     ): List<MovementDirection>?
 
     protected fun getDirectionOfMovement(previousLocation: Coordinates, currentLocation: Coordinates): MovementDirection? {

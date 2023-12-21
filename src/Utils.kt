@@ -116,3 +116,8 @@ fun shoelaceArea(v: List<Coordinates>): Double {
     return abs(a + v[n - 1].x * v[0].y - v[0].x * v[n -1].y) / 2.0
 }
 
+fun<T> MutableList<T>.shift(): T {
+    val element = first()
+    removeAt(0)
+    return element
+}
