@@ -121,3 +121,5 @@ fun<T> MutableList<T>.shift(): T {
     removeAt(0)
     return element
 }
+
+fun manhattanDistance(first: Coordinates, second: Coordinates) = abs(first.y - second.y) + abs(first.x - second.x)
