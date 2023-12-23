@@ -47,3 +47,21 @@ fun <T: Number> List<T>.multiplyContent(): Float {
     }
     return total
 }
+
+fun <T> List<List<T>>.println() {
+    forEach {
+        it.forEach {
+            print("$it ")
+        }
+        kotlin.io.println()
+    }
+}
+
+fun <T> List<List<T>>.println(whatToPrint: (T) -> String) {
+    forEach {
+        it.forEach {
+            print("${whatToPrint(it)} ")
+        }
+        kotlin.io.println()
+    }
+}

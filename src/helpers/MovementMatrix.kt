@@ -45,7 +45,7 @@ abstract class MovementMatrix(schema: List<String>) {
     }
 
     open fun isCoordinateValid(coordinates: Coordinates): Boolean {
-        return coordinates.y in matrix.indices || coordinates.x in matrix[0].indices
+        return coordinates.y in matrix.indices && coordinates.x in matrix[0].indices
     }
 
     abstract fun symbolToDirections(
