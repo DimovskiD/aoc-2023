@@ -65,3 +65,14 @@ fun <T> List<List<T>>.println(whatToPrint: (T) -> String) {
         kotlin.io.println()
     }
 }
+
+fun <T, S, V> Collection<T>.cartesianProduct(other: Iterable<S>, transformer: (first: T, second: S) -> V): List<V> {
+    return this.flatMap { first -> other.map { second -> transformer.invoke(first, second) } }
+}
+fun <T> Collection<T>.uniquePairs(other: Iterable<T>): List<Pair<T,T>> {
+    return cartesianProduct(other) { first, second ->
+        if (first == second) null
+        else first to second
+    }.toSet().filterNotNull()
+
+}
