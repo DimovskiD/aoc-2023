@@ -1,4 +1,3 @@
-
 import com.microsoft.z3.Context
 import com.microsoft.z3.Status
 import java.math.BigDecimal
@@ -33,14 +32,14 @@ fun main() {
     }
 
     fun part1(): Int = hailstones.uniquePairs(hailstones).count { pair ->
-            if (pair.first.dy * pair.second.dxNegative != pair.first.dxNegative * pair.second.dy) {
-                val (x, y) = pair.first.intersectWith(pair.second)
-                x in range && y in range && listOf(
-                    pair.first,
-                    pair.second
-                ).all { (x - it.x) * it.dx >= BigDecimal.ZERO && (y - it.y) * it.dy >= BigDecimal.ZERO }
-            } else false
-        } / 2
+        if (pair.first.dy * pair.second.dxNegative != pair.first.dxNegative * pair.second.dy) {
+            val (x, y) = pair.first.intersectWith(pair.second)
+            x in range && y in range && listOf(
+                pair.first,
+                pair.second
+            ).all { (x - it.x) * it.dx >= BigDecimal.ZERO && (y - it.y) * it.dy >= BigDecimal.ZERO }
+        } else false
+    } / 2
 
     fun part2(): Long {
         val ctx = Context()
@@ -54,9 +53,24 @@ fun main() {
         repeat(3) {
             val (sx, sy, sz, sxv, syv, szv) = hailstones[it]
             val t = ctx.mkRealConst("t$it")
-            solver.add(ctx.mkEq(ctx.mkAdd(mx, ctx.mkMul(mxv, t)), ctx.mkAdd(ctx.mkReal(sx.toString()), ctx.mkMul(ctx.mkReal(sxv.toString()), t))))
-            solver.add(ctx.mkEq(ctx.mkAdd(m, ctx.mkMul(mv, t)), ctx.mkAdd(ctx.mkReal(sy.toString()), ctx.mkMul(ctx.mkReal(syv.toString()), t))))
-            solver.add(ctx.mkEq(ctx.mkAdd(mz, ctx.mkMul(mzv, t)), ctx.mkAdd(ctx.mkReal(sz.toString()), ctx.mkMul(ctx.mkReal(szv.toString()), t))))
+            solver.add(
+                ctx.mkEq(
+                    ctx.mkAdd(mx, ctx.mkMul(mxv, t)),
+                    ctx.mkAdd(ctx.mkReal(sx.toString()), ctx.mkMul(ctx.mkReal(sxv.toString()), t))
+                )
+            )
+            solver.add(
+                ctx.mkEq(
+                    ctx.mkAdd(m, ctx.mkMul(mv, t)),
+                    ctx.mkAdd(ctx.mkReal(sy.toString()), ctx.mkMul(ctx.mkReal(syv.toString()), t))
+                )
+            )
+            solver.add(
+                ctx.mkEq(
+                    ctx.mkAdd(mz, ctx.mkMul(mzv, t)),
+                    ctx.mkAdd(ctx.mkReal(sz.toString()), ctx.mkMul(ctx.mkReal(szv.toString()), t))
+                )
+            )
         }
         if (solver.check() == Status.SATISFIABLE) {
             val model = solver.model
@@ -66,7 +80,6 @@ fun main() {
 
         return 0
     }
-
 
     println(part2())
 }
