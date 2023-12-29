@@ -1,8 +1,25 @@
-import helpers.memoize
-
 data class MachinePart(val x: Int, val m: Int, val a: Int, val s: Int) {
-    fun sum(): Int = s + x + m + a
+    fun sum(): Int = x + m + a + s
+}
 
+data class MachinePartRanges(var x: IntRange, var m: IntRange, var a: IntRange, var s: IntRange) {
+    fun getOnePart() = MachinePart(x.last, m.last, a.last, s.last)
+
+    fun getRangeForProperty(char: Char) = when (char) {
+        'x' -> x
+        'm' -> m
+        'a' -> a
+        else -> s
+    }
+
+    fun copyAndSet(property: Char, range: IntRange): MachinePartRanges {
+        return when (property) {
+            'x' -> copy(x = range)
+            'm' -> copy(m = range)
+            'a' -> copy(a = range)
+            else -> copy(s = range)
+        }
+    }
 }
 
 data class Rule(
@@ -12,23 +29,21 @@ data class Rule(
     val result: String,
     val isDefault: Boolean = false
 ) {
-
     fun check(it: MachinePart): String? {
-        return if (isDefault) result else if (property == 'a' && (operation == '<' && it.a < value || operation == '>' && it.a > value)) result
+        return if (isDefault) result
         else if (property == 'x' && (operation == '<' && it.x < value || operation == '>' && it.x > value)) result
+        else if (property == 'a' && (operation == '<' && it.a < value || operation == '>' && it.a > value)) result
         else if (property == 'm' && (operation == '<' && it.m < value || operation == '>' && it.m > value)) result
         else if (property == 's' && (operation == '<' && it.s < value || operation == '>' && it.s > value)) result
         else null
     }
-
 }
 
 data class Workflow(val rules: List<Rule>)
 
 fun main() {
-
-
     val workflows: HashMap<String, Workflow> = hashMapOf()
+    val valid = mutableListOf<MachinePartRanges>()
 
     fun executeWorkflow(
         nextWorkFlowName: String,
@@ -45,7 +60,63 @@ fun main() {
         return null
     }
 
-    val memoizedWorkflowExecute = { x: String, part: MachinePart -> executeWorkflow(x, part) }.memoize()
+    fun subtract(from: IntRange, subtractThis: IntRange): IntRange {
+        val subtracted = from.subtract(subtractThis)
+        if (subtracted.isNotEmpty())
+            return subtracted.first()..subtracted.last()
+        return from
+    }
+
+    fun getNextRange(property: Char, part: MachinePartRanges, list: MutableList<MachinePartRanges>): IntRange {
+        var nextRange = part.getRangeForProperty(property)
+
+        list.forEach {
+            nextRange = subtract(nextRange, it.getRangeForProperty(property))
+        }
+        return nextRange
+    }
+
+    fun executeWorkflow(
+        nextWorkFlowName: String,
+        firstPart: MachinePartRanges,
+    ) {
+        val list = mutableListOf<MachinePartRanges>()
+        var part = firstPart
+        var nextPart = firstPart
+
+        val workflow = workflows[nextWorkFlowName] ?: return
+        val rules = workflow.rules
+
+        for (rule in rules) {
+            val property = rule.property
+
+            if (rule.isDefault) {
+                list.add(nextPart)
+            } else {
+                var nextRange = getNextRange(property, part, list)
+                val range = if (rule.operation == '<') {
+                    part.getRangeForProperty(property).first until rule.value
+                } else {
+                    rule.value + 1..part.getRangeForProperty(property).last
+                }
+
+                part = part.copyAndSet(property, range)
+
+                nextRange = subtract(nextRange, part.getRangeForProperty(property))
+                nextPart = part.copyAndSet(property, nextRange)
+
+                list.add(part)
+                part = nextPart
+            }
+        }
+
+        list.forEachIndexed { index, it ->
+            rules[index].check(it.getOnePart())?.let { res ->
+                if (res == "A") valid.add(it)
+                executeWorkflow(res, it)
+            }
+        }
+    }
 
     fun extractWorkflows(input: List<String>) {
         input.subList(0, input.indexOf("")).map { workflow ->
@@ -73,26 +144,26 @@ fun main() {
             MachinePart(x, m, a, s)
         }
     }
+
     fun part1(input: List<String>): Int {
         extractWorkflows(input)
         val parts = extractParts(input)
 
         return parts.sumOf { part ->
-            if (memoizedWorkflowExecute("in", part) == "A") part.sum() else 0
+            if (executeWorkflow("in", part) == "A") part.sum() else 0
         }
     }
 
     fun part2(input: List<String>): Long {
         extractWorkflows(input)
-        val parts = mutableListOf<MachinePart>()
+        executeWorkflow("in", MachinePartRanges(1..4000, 1..4000, 1..4000, 1..4000))
 
-        return parts.sumOf { part ->
-            println(part)
-            if (memoizedWorkflowExecute("in", part) == "A") part.sum() else 0
-        }.toLong()
+        return valid.toSet().sumOf {
+            it.a.toSet().size.toLong() * it.x.toSet().size.toLong() * it.m.toSet().size.toLong() * it.s.toSet().size.toLong()
+        }
     }
 
-    val testInput = readInput("day19_example")
+    val testInput = readInput("day19")
     println(part2(testInput))
 
 }
