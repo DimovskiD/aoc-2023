@@ -1,3 +1,6 @@
+
+![aoc_gif](https://github.com/DimovskiD/aoc-2023/assets/26257864/1318e1c3-2382-4999-be5d-a714ccd1f063)
+
 # aoc-2023
 
 Welcome to the Advent of Code[^aoc] Kotlin project created by [dimovskid][github] using the [Advent of Code Kotlin Template][template] delivered by JetBrains.
